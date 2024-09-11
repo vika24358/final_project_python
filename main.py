@@ -10,18 +10,32 @@ app = FastAPI(
     title='tourist_agency'
 )
 
+templates = Jinja2Templates(directory='templates')
+
 
 @app.get('/', include_in_schema=False)
 @app.post('/', include_in_schema=False)
 def index(request: Request, q: str = Form(default='')):
-#     tours = storage.get_tours(limit=40, q=q)
-#     context = {
-#         'request': request,
-#         'page_title': 'the best agency',
-#         'tours': tours
-#     }
-#     return context
-    return 'hello'
+    tours = storage.get_tours(limit=40, q=q)
+    context = {
+        'request': request,
+        'page_title': 'the best agency',
+        'tours': tours
+    }
+    return templates.TemplateResponse('index_html.html', context=context)
+#     return 'hello'
+
+
+@app.get('/{tour_id}', include_in_schema=False)
+def tour_detail(request: Request, tour_id: int):
+    tour = storage.get_tour(tour_id)
+    context = {
+        'request': request,
+        'page_title': f'{tour.title}',
+        'tour': tour
+    }
+    return templates.TemplateResponse('details.html', context=context)
+
 
 @app.post('/api/tour/', description="create tour", status_code=status.HTTP_201_CREATED, tags=['Tours'])
 def add_product(new_tour: NewTour) -> SavedTour:
